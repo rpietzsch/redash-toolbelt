@@ -46,10 +46,10 @@ def list_users(users):
 @click.command()
 @click.option('--redash-url', required=True)
 @click.option('--api-key', required=True, help="API Key")
-@click.option('--all', is_flag=True, help="Export all dashboard")
-@click.option('--ls', is_flag=True, help="List all dashboards")
-@click.option('--id', help="Export dashboard with given slug")
-@click.option('--to-file', is_flag=True, help="write dashboard to file instead of stdout")
+@click.option('--all', is_flag=True, help="Export all user")
+@click.option('--ls', is_flag=True, help="List all user")
+@click.option('--id', help="Export user with given id")
+@click.option('--to-file', is_flag=True, help="write user(s) to file instead of stdout")
 def main(redash_url, api_key, all, ls, id, to_file):
     users = get_users(redash_url, api_key)
     if ls:
