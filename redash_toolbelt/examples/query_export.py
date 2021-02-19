@@ -35,6 +35,7 @@ def save_queries(queries):
                        last_updated_at=query['updated_at'],
                        query=query['query'])
             f.write(content)
+        print("exported: {file}, called: {name}".format(file=filename, name=query['name']))
 
 
 @click.command()
