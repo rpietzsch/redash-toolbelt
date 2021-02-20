@@ -5,7 +5,8 @@ class Redash(object):
     def __init__(self, redash_url, api_key):
         self.redash_url = redash_url
         self.session = requests.Session()
-        self.session.headers.update({'Authorization': 'Key {}'.format(api_key)})
+        self.session.headers.update(
+            {'Authorization': 'Key {}'.format(api_key)})
 
     def test_credentials(self):
         try:
@@ -18,6 +19,26 @@ class Redash(object):
         """GET api/queries"""
         return self._get('api/queries', params=dict(page=page, page_size=page_size)).json()
 
+    def query(self, id):
+        """GET api/queries/{id}"""
+        return self._get('api/queries/{}'.format(id)).json()
+
+    def data_sources(self):
+        """GET api/data_sources"""
+        return self._get('api/data_sources').json()
+
+    def data_source(self, id):
+        """GET api/data_sources/{id}"""
+        return self._get('api/data_sources/{}'.format(id)).json()
+
+    def users(self):
+        """GET api/users"""
+        return self._get('api/users').json()
+
+    def user(self, id):
+        """GET api/users/{id}"""
+        return self._get('api/users/{}'.format(id)).json()
+
     def dashboards(self, page=1, page_size=25):
         """GET api/dashboards"""
         return self._get('api/dashboards', params=dict(page=page, page_size=page_size)).json()
@@ -27,12 +48,18 @@ class Redash(object):
         return self._get('api/dashboards/{}'.format(slug)).json()
 
     def create_dashboard(self, name):
+        """POST api/dashboards create a new empty dashboard with given name. 
+        
+        Returns ID of the new dashboard"""
         return self._post('api/dashboards', json={'name': name}).json()
 
     def update_dashboard(self, dashboard_id, properties):
+        """POST api/dashboards/{id} update the given dashboard (id) 
+        providing the properties to set/change"""
         return self._post('api/dashboards/{}'.format(dashboard_id), json=properties).json()
 
     def create_widget(self, dashboard_id, visualization_id, text, options):
+        """POST api/widgets create a new widget (visualization_id) on given dashboard (dashboard_id)"""
         data = {
             'dashboard_id': dashboard_id,
             'visualization_id': visualization_id,
@@ -43,6 +70,11 @@ class Redash(object):
         return self._post('api/widgets', json=data)
 
     def duplicate_dashboard(self, slug, new_name=None):
+        """duplicates the given dashboard (slug) set the new_name 
+        (default to 'Copy of <name of dashboard to duplicate>'). 
+        Copies all tags and all widgets.
+
+        Returns the ID of the duplicate dashboard."""
         current_dashboard = self.dashboard(slug)
 
         if new_name is None:
@@ -50,13 +82,15 @@ class Redash(object):
 
         new_dashboard = self.create_dashboard(new_name)
         if current_dashboard['tags']:
-            self.update_dashboard(new_dashboard['id'], {'tags': current_dashboard['tags']})
+            self.update_dashboard(new_dashboard['id'], {
+                                  'tags': current_dashboard['tags']})
 
         for widget in current_dashboard['widgets']:
             visualization_id = None
             if 'visualization' in widget:
                 visualization_id = widget['visualization']['id']
-            self.create_widget(new_dashboard['id'], visualization_id, widget['text'], widget['options'])
+            self.create_widget(
+                new_dashboard['id'], visualization_id, widget['text'], widget['options'])
 
         return new_dashboard
 
@@ -79,12 +113,11 @@ class Redash(object):
         items = []
 
         while not stop_loading:
-            response =  resource(page=page, page_size=page_size)
-
+            response = resource(page=page, page_size=page_size)
             items += response['results']
             page += 1
-
-            stop_loading = response['page'] * response['page_size'] >= response['count']
+            stop_loading = response['page'] * \
+                response['page_size'] >= response['count']
 
         return items
 
