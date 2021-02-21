@@ -1,5 +1,6 @@
 import click
-from redash_toolbelt import Redash, get_frontend_vals
+from redash_toolbelt.client import Redash
+from redash_toolbelt.date_ranges import get_frontend_vals
 
 
 def refresh_dashboard(baseurl, apikey, slug):

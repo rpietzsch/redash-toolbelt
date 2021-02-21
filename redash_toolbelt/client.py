@@ -15,41 +15,70 @@ class Redash(object):
         except requests.exceptions.HTTPError:
             return False
 
-    def queries(self, page=1, page_size=25):
-        """GET api/queries"""
+    def group(self, id):
+        """GET api/groups/{id}
+        return detailed representation of a group"""
+        return self._get('api/groups/{}'.format(id)).json()
+
+    def groups(self):
+        """GET api/groups
+        return array of all groups (no details, use group(id) to get those)"""
+        return self._get('api/groups').json()
+
+    def queries(self):
+        """return array of all queries (no details, use query(id) to get those)"""
+        return self._paginate(self.queries_page)
+
+    def queries_page(self, page=1, page_size=25):
+        """GET api/queries
+        returns page N of given page_size of queries (no details, use query(id) to get those)"""
         return self._get('api/queries', params=dict(page=page, page_size=page_size)).json()
 
     def query(self, id):
-        """GET api/queries/{id}"""
+        """GET api/queries/{id}
+        return detailed representation of a query"""
         return self._get('api/queries/{}'.format(id)).json()
 
     def data_sources(self):
-        """GET api/data_sources"""
+        """GET api/data_sources
+        returns array of all data_sources (no details, use data_soruce(id) to get those)"""
         return self._get('api/data_sources').json()
 
     def data_source(self, id):
-        """GET api/data_sources/{id}"""
+        """GET api/data_sources/{id}
+        return detailed representation of a data_source"""
         return self._get('api/data_sources/{}'.format(id)).json()
 
     def users(self):
-        """GET api/users"""
-        return self._get('api/users').json()
+        """return array of all users (no details, use user(id) to get those)"""
+        return self._paginate(self.users_page)
+
+    def users_page(self, page=1, page_size=25):
+        """GET api/users
+        returns page N of given page_size of users (no details, use user(id) to get those)"""
+        return self._get('api/users', params=dict(page=page, page_size=page_size)).json()
 
     def user(self, id):
-        """GET api/users/{id}"""
+        """GET api/users/{id}
+        return detailed representation of a user"""
         return self._get('api/users/{}'.format(id)).json()
 
-    def dashboards(self, page=1, page_size=25):
-        """GET api/dashboards"""
+    def dashboards(self):
+        """return array of all dashboards (no details, use dashboard(slug) to get those)"""
+        return self._paginate(self.dashboards_page)
+
+    def dashboards_page(self, page=1, page_size=25):
+        """GET api/dashboards
+        returns page N of given page_size of dashboards (no details, use dashboard(slug) to get those)"""
         return self._get('api/dashboards', params=dict(page=page, page_size=page_size)).json()
 
     def dashboard(self, slug):
-        """GET api/dashboards/{slug}"""
+        """GET api/dashboards/{slug}
+        return detailed representation of a dashboard"""
         return self._get('api/dashboards/{}'.format(slug)).json()
 
     def create_dashboard(self, name):
-        """POST api/dashboards create a new empty dashboard with given name. 
-        
+        """POST api/dashboards create a new empty dashboard with given name.
         Returns ID of the new dashboard"""
         return self._post('api/dashboards', json={'name': name}).json()
 
@@ -73,7 +102,6 @@ class Redash(object):
         """duplicates the given dashboard (slug) set the new_name 
         (default to 'Copy of <name of dashboard to duplicate>'). 
         Copies all tags and all widgets.
-
         Returns the ID of the duplicate dashboard."""
         current_dashboard = self.dashboard(slug)
 
@@ -96,7 +124,7 @@ class Redash(object):
 
     def scheduled_queries(self):
         """Loads all queries and returns only the scheduled ones."""
-        queries = self.paginate(self.queries)
+        queries = self._paginate(self.queries_page)
         return filter(lambda query: query['schedule'] is not None, queries)
 
     def update_query(self, query_id, data):
@@ -104,7 +132,8 @@ class Redash(object):
         path = 'api/queries/{}'.format(query_id)
         return self._post(path, json=data)
 
-    def paginate(self, resource):
+    @staticmethod
+    def _paginate(resource):
         """Load all items of a paginated resource"""
         stop_loading = False
         page = 1
