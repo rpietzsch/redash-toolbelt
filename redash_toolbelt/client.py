@@ -15,15 +15,42 @@ class Redash(object):
         except requests.exceptions.HTTPError:
             return False
 
-    def group(self, id):
+    def group(self, group_id):
         """GET api/groups/{id}
         return detailed representation of a group"""
-        return self._get('api/groups/{}'.format(id)).json()
+        return self._get('api/groups/{}'.format(group_id)).json()
 
     def groups(self):
         """GET api/groups
         return array of all groups (no details, use group(id) to get those)"""
         return self._get('api/groups').json()
+
+    def create_visualization(self, properties):
+        """POST api/visualizations
+        create a new visualization
+        returns visualization id"""
+        return self._post('api/visualizations', json=properties).json()
+
+    def archive_visualization(self, visualization_id):
+        """DELETE api/visualizations/{id}
+        deletes a visualization"""
+        return self._delete('api/visualizations/{}'.format(visualization_id)).json()
+
+    def create_query(self, properties):
+        """POST api/queries
+        create a new query
+        returns query id"""
+        return self._post('api/queries', json=properties).json()
+
+    def update_query(self, query_id, data):
+        """POST /api/queries/{query_id} with the provided data object."""
+        path = 'api/queries/{}'.format(query_id)
+        return self._post(path, json=data)
+
+    def archive_query(self, query_id):
+        """DELETE api/queries/{id}
+        archives a query"""
+        return self._delete('api/queries/{}'.format(query_id)).json()
 
     def queries(self):
         """return array of all queries (no details, use query(id) to get those)"""
@@ -34,20 +61,33 @@ class Redash(object):
         returns page N of given page_size of queries (no details, use query(id) to get those)"""
         return self._get('api/queries', params=dict(page=page, page_size=page_size)).json()
 
-    def query(self, id):
+    def query(self, query_id):
         """GET api/queries/{id}
         return detailed representation of a query"""
-        return self._get('api/queries/{}'.format(id)).json()
+        return self._get('api/queries/{}'.format(query_id)).json()
+
+    # not supported by the API
+    #def create_data_source(self, properties):
+    #    """POST api/data_sources
+    #    create a new data_source
+    #    returns data_source id"""
+    #    return self._post('api/data_sources', json=properties).json()
+
+    def update_data_source(self, data_source_id, properties):
+        """POST api/data_sources/{id}
+        create a new data_source
+        returns data_source id"""
+        return self._post('api/data_sources/{id}'.format(data_source_id), json=properties).json()
 
     def data_sources(self):
         """GET api/data_sources
         returns array of all data_sources (no details, use data_soruce(id) to get those)"""
         return self._get('api/data_sources').json()
 
-    def data_source(self, id):
+    def data_source(self, data_source_id):
         """GET api/data_sources/{id}
         return detailed representation of a data_source"""
-        return self._get('api/data_sources/{}'.format(id)).json()
+        return self._get('api/data_sources/{}'.format(data_source_id)).json()
 
     def users(self):
         """return array of all users (no details, use user(id) to get those)"""
@@ -58,10 +98,10 @@ class Redash(object):
         returns page N of given page_size of users (no details, use user(id) to get those)"""
         return self._get('api/users', params=dict(page=page, page_size=page_size)).json()
 
-    def user(self, id):
+    def user(self, user_id):
         """GET api/users/{id}
         return detailed representation of a user"""
-        return self._get('api/users/{}'.format(id)).json()
+        return self._get('api/users/{}'.format(user_id)).json()
 
     def dashboards(self):
         """return array of all dashboards (no details, use dashboard(slug) to get those)"""
@@ -83,7 +123,7 @@ class Redash(object):
         return self._post('api/dashboards', json={'name': name}).json()
 
     def update_dashboard(self, dashboard_id, properties):
-        """POST api/dashboards/{id} update the given dashboard (id) 
+        """POST api/dashboards/{id} update the given dashboard (id)
         providing the properties to set/change"""
         return self._post('api/dashboards/{}'.format(dashboard_id), json=properties).json()
 
@@ -99,8 +139,8 @@ class Redash(object):
         return self._post('api/widgets', json=data)
 
     def duplicate_dashboard(self, slug, new_name=None):
-        """duplicates the given dashboard (slug) set the new_name 
-        (default to 'Copy of <name of dashboard to duplicate>'). 
+        """duplicates the given dashboard (slug) set the new_name
+        (default to 'Copy of <name of dashboard to duplicate>').
         Copies all tags and all widgets.
         Returns the ID of the duplicate dashboard."""
         current_dashboard = self.dashboard(slug)
@@ -127,11 +167,6 @@ class Redash(object):
         queries = self._paginate(self.queries_page)
         return filter(lambda query: query['schedule'] is not None, queries)
 
-    def update_query(self, query_id, data):
-        """POST /api/queries/{query_id} with the provided data object."""
-        path = 'api/queries/{}'.format(query_id)
-        return self._post(path, json=data)
-
     @staticmethod
     def _paginate(resource):
         """Load all items of a paginated resource"""
@@ -155,6 +190,9 @@ class Redash(object):
 
     def _post(self, path, **kwargs):
         return self._request('POST', path, **kwargs)
+
+    def _delete(self, path, **kwargs):
+        return self._request('DELETE', path, **kwargs)
 
     def _request(self, method, path, **kwargs):
         url = '{}/{}'.format(self.redash_url, path)

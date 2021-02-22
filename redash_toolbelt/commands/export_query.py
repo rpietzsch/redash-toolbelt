@@ -2,30 +2,14 @@ import click
 from redash_toolbelt.client import Redash
 from redash_toolbelt.utils import save_dict_as_json_file
 
-template = u"""/*
-Name: {name}
-Data source: {data_source}
-Created By: {created_by}
-Last Update At: {last_updated_at}
-*/
-{query}"""
-
-
 def get_query(client, id, toFile=False):
     query = client.query(id)
-    content = template.format(name=query['name'],
-                data_source=query['data_source_id'],
-                created_by=query['user']['name'],
-                last_updated_at=query['updated_at'],
-                query=query['query'])
     if toFile:
-        filename = 'query_{}.sql'.format(query['id'])
-        with open(filename, 'w') as f:
-            f.write(content)
-        print("exported: {file}, called: {name}".format(
-            file=filename, name=query['name']))
+        filename = 'query_{}.json'.format(query['id'])
+        msg = "exported: {file}, called: {name}".format(file=filename, name=query['name'])
+        save_dict_as_json_file(query, filename, msg)
     else:
-        print(content)
+        print(json.dumps(query, indent=2))
 
 
 def get_queries(queries, client, toFile):
