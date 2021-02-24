@@ -31,7 +31,12 @@ class Redash(object):
         returns visualization id"""
         return self._post('api/visualizations', json=properties).json()
 
-    def archive_visualization(self, visualization_id):
+    def update_visualization(self, visualization_id, properties):
+        """POST api/visualizations/{id}
+        updates the details of visualization"""
+        return self._post('api/visualizations/{}'.format(visualization_id), json=properties).json()
+
+    def delete_visualization(self, visualization_id):
         """DELETE api/visualizations/{id}
         deletes a visualization"""
         return self._delete('api/visualizations/{}'.format(visualization_id)).json()
@@ -45,7 +50,7 @@ class Redash(object):
     def update_query(self, query_id, data):
         """POST /api/queries/{query_id} with the provided data object."""
         path = 'api/queries/{}'.format(query_id)
-        return self._post(path, json=data)
+        return self._post(path, json=data).json()
 
     def archive_query(self, query_id):
         """DELETE api/queries/{id}
@@ -136,7 +141,7 @@ class Redash(object):
             'options': options,
             'width': 1,
         }
-        return self._post('api/widgets', json=data)
+        return self._post('api/widgets', json=data).json()
 
     def duplicate_dashboard(self, slug, new_name=None):
         """duplicates the given dashboard (slug) set the new_name
